@@ -14,8 +14,6 @@ class Layer:
         self.z = np.zeros(nRow)
         self.o = np.zeros(nRow)
         self.dEdZ = np.zeros(nRow)
-        self.wNew = np.zeros((nRow, nCol))
-        self.bNew = np.zeros(nRow)
 
     def eval(self, inp):
         self.i = inp.copy()
@@ -61,8 +59,8 @@ class MLP:
         dEdO = 2 * (out - exp)
         dOdZ = oL.aFun.evalPrim(oL.z)
         oL.dEdZ = dEdO * dOdZ
-        oL.bNew = oL.b - eta * oL.dEdZ
-        oL.wNew = oL.w - eta * np.outer(oL.dEdZ, oL.i)
+        oL.b = oL.b - eta * oL.dEdZ
+        oL.w = oL.w - eta * np.outer(oL.dEdZ, oL.i)
         # https://en.wikipedia.org/wiki/Outer_product
 
         #Hidden layers
@@ -73,13 +71,8 @@ class MLP:
             dOdZ = l.aFun.evalPrim(l.z)
             dEdO = np.matmul(np.transpose(nl.w), nl.dEdZ) 
             l.dEdZ = dOdZ * dEdO
-            l.bNew = l.b - eta * l.dEdZ
-            l.wNew = l.w - eta * np.outer(l.dEdZ, l.i)
-
-        #Copy over trained values
-        for l in layers:
-            l.w = l.wNew.copy()
-            l.b = l.bNew.copy()
+            l.b = l.b - eta * l.dEdZ
+            l.w = l.w - eta * np.outer(l.dEdZ, l.i)
 
         return self.cost
 
