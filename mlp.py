@@ -29,62 +29,55 @@ class MLP:
     layers = []
     cost = 0
 
-    def __init__(self, inputSize, layerSizes, eta):
+    def __init__(self, inputSize, layerSizes, eta, aFun):
         self.inputSize = inputSize
         current = inputSize
         for ls in layerSizes:
-            self.layers.append(Layer(ls, current, aFunLibrary.ELLIOT_SIG))
+            self.layers.append(Layer(ls, current, aFun))
             current = ls
-        self.outputLayer = self.layers[len(self.layers) - 1]
+        self.oL = self.layers[len(self.layers) - 1]
         self.eta = eta
     
-    def eval(self, inp, expected):
-        current = inp.copy()
+    def eval(self, inp, exp):
+        #No need to make copy of input as the local
+        #reference is reassigned at the eval()
+
         for l in self.layers:
-            current = l.eval(current)
+            inp = l.eval(inp)
         
-        d = current - expected
+        d = inp - exp
         self.cost = np.dot(d, d)
 
-        return current
+        return inp
 
-    def train(self, inp, expected):
-        output = self.eval(inp, expected)
+    def train(self, inp, exp):
+        out = self.eval(inp, exp)
+
+        oL = self.oL
+        eta = self.eta
+        layers = self.layers
 
         #Output layer
-        for row in range(self.outputLayer.nRow):
-            dEdO = 2 * (output[row] - expected[row])
-            dOdZ = self.outputLayer.aFun.evalPrim(self.outputLayer.z[row])
-            self.outputLayer.dEdZ[row] = dEdO * dOdZ
-            dEdB = dEdO * dOdZ * 1
-            self.outputLayer.bNew[row] = self.outputLayer.b[row] - self.eta * dEdB
-
-            for col in range(self.outputLayer.nCol):
-                dZdW = self.outputLayer.i[col]
-                dEdW = dEdO * dOdZ * dZdW
-                self.outputLayer.wNew[row, col] = self.outputLayer.w[row, col] - self.eta * dEdW
+        dEdO = 2 * (out - exp)
+        dOdZ = oL.aFun.evalPrim(oL.z)
+        oL.dEdZ = dEdO * dOdZ
+        oL.bNew = oL.b - eta * oL.dEdZ
+        oL.wNew = oL.w - eta * np.outer(oL.dEdZ, oL.i)
+        # https://en.wikipedia.org/wiki/Outer_product
 
         #Hidden layers
-        for i in reversed(range(len(self.layers) - 2)):
+        for i in reversed(range(len(layers) - 1)):
             l = layers[i]
             nl = layers[i + 1]
-            for row in range(l.nRow):
-                dOdZ = l.aFun.evalPrim(l.z[row])
-                dEdO = 0.0
-                for j in range(len(nl.nRow)):
-                    dEdO += nl.dEdZ[j] * nl.w[j, row]
 
-                dEdZ = dEdO * dOdZ
-                dEdB = dEdZ * 1
-                l.bNew[row] = l.b[row] - self.eta * dEdB
-                l.dEdZ[row] = dEdZ
-                for col in range(l.nCol):
-                    dZdW = l.i[col]
-                    dEdW = dEdZ * dZdW
-                    l.wNew[row, col] = l.w[row, col] - self.eta * dEdW
+            dOdZ = l.aFun.evalPrim(l.z)
+            dEdO = np.matmul(np.transpose(nl.w), nl.dEdZ) 
+            l.dEdZ = dOdZ * dEdO
+            l.bNew = l.b - eta * l.dEdZ
+            l.wNew = l.w - eta * np.outer(l.dEdZ, l.i)
 
         #Copy over trained values
-        for l in self.layers:
+        for l in layers:
             l.w = l.wNew.copy()
             l.b = l.bNew.copy()
 

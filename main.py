@@ -4,6 +4,7 @@ import matplotlib.cm as cm
 
 import mlp
 import fileUtils
+import aFunLibrary
 
 #http://rogerdudler.github.io/git-guide/
 
@@ -28,7 +29,7 @@ def showImage(image):
 def main():
     """The entry point of the program."""
 
-    network = mlp.MLP(784, (12, 10), 0.01)
+    network = mlp.MLP(784, (12, 10), 0.01, aFunLibrary.ARCTAN)
     
     #print(network.eval(inp, expected))
     #print(network.getCost())
@@ -47,14 +48,16 @@ def main():
         if command[0] == "train":
             sum = 0.0
             print("Training...")
-            for e in trainSet:
-                sum += network.train(e.inp, e.exp)
+            for i, e in enumerate(trainSet):
+                cost = network.train(e.inp, e.exp)
+                print("%i of %i: Cost: %.8f" % (i, len(trainSet), cost))
+                sum += cost
             print("Average cost: %.8f" % (sum / len(trainSet)))
         elif command[0] == "input":
             i = int(command[1])
             print("Input %s:" % (trainLabels[i]))
             print("Output: %s" % (network.eval(trainSet[i].inp, trainSet[i].exp)))
-            print("Cost: %.8f" % (network.getCost()))
+            # print("Cost: %.8f" % (network.getCost()))
 
     
 if __name__ == '__main__':

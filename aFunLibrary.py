@@ -1,3 +1,6 @@
+import math
+import numpy as np
+
 class ActivationFunction:
     def __init__(self, func, prim):
         self.func = func
@@ -26,7 +29,7 @@ TANH = ActivationFunction(
     lambda x: 1.0 - pow(math.tanh(x), 2))
 
 ARCTAN = ActivationFunction(
-    lambda x: math.arctan(x),
+    lambda x: np.arctan(x),
     lambda x: 1.0 / (x*x + 1))
 
 ELLIOT_SIG = ActivationFunction(
