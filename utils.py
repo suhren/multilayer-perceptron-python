@@ -4,7 +4,7 @@ import numpy as np
 from array import array as pyarray
 
 import mlp
-import aFunLibrary
+import afun_lib
 
 """
 https://gist.github.com/mfathirirhas/f24d61d134b014da029a
@@ -22,14 +22,21 @@ Type code	C Type	Python Type	Minimum size in bytes
 'd'	double	float	8
 """
 def loadMNIST(pathLabels, pathImages):
-    digits=np.arange(10)
     fileLabels = open(pathLabels, 'rb')
     magicNumber, size = struct.unpack(">II", fileLabels.read(8))
+
+    if (magicNumber != 2049):
+        raise Exception("Magic number in label file should be 2049. The value was: %i" % (magicNumber))
+
     labels = np.asarray(pyarray("b", fileLabels.read()))
     fileLabels.close()
 
     fileImage = open(pathImages, 'rb')
     magicNumber, size, nRow, nCol = struct.unpack(">IIII", fileImage.read(16))
+
+    if (magicNumber != 2051):
+        raise Exception("Magic number in image file should be 2051. The value was: %i" % (magicNumber))
+
     imageBytes = pyarray("B", fileImage.read())
     fileImage.close()
 
@@ -69,7 +76,7 @@ def loadMLP(filename):
         for i in range(len(dim)):
             nRow = dim[i]
             nCol = nInputs
-            l = mlp.Layer(nRow, nCol, aFunLibrary.fromName(lStrings[i]))
+            l = mlp.Layer(nRow, nCol, afun_lib.from_name(lStrings[i]))
             for row in range(nRow):
                 data = [float(i) for i in f.readline().split()]
                 l.w[row] = data[0:len(data) - 1]

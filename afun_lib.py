@@ -2,19 +2,13 @@ import math
 import numpy as np
 
 class ActivationFunction:
-    def __init__(self, name, func, prim):
-        self.name = name
-        self.func = func
-        self.prim = prim
+    def __init__(self, name, func, derivate):
+        self._name = name
+        self.function = func
+        self.derivate = derivate
 
     def __str__(self):
-        return self.name
-
-    def eval(self, x):
-        return self.func(x)
-
-    def evalPrim(self, x):
-        return self.prim(x)
+        return self._name
 
 IDENTITY = ActivationFunction(
     "Identity",
@@ -76,5 +70,5 @@ GAUSSIAN = ActivationFunction(
     lambda x: math.exp(-x**2),
     lambda x: -2.0 * x * math.exp(-x**2))
     
-def fromName(name):
+def from_name(name):
     return ELLIOT_SIG

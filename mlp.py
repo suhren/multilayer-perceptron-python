@@ -1,7 +1,7 @@
 import numpy as np
-import aFunLibrary
+import afun_lib
 
-class Layer:
+class Layer(object):
     """The class representing a single layer in the MLP."""
 
     def __init__(self, nRow, nCol, aFun):
@@ -18,10 +18,10 @@ class Layer:
     def eval(self, inp):
         self.i = inp.copy()
         self.z = np.matmul(self.w, inp) + self.b
-        self.o = self.aFun.eval(self.z)
+        self.o = self.aFun.function(self.z)
         return self.o
 
-class MLP:
+class MLP(object):
     """The class representing the entire MLP."""
 
     layers = []
@@ -35,7 +35,7 @@ class MLP:
         self.oL = layers[len(layers) - 1]
 
     @classmethod
-    def fromArguments(cls, name, inputSize, layerSizes, eta, aFun):
+    def from_arguments(cls, name, inputSize, layerSizes, eta, aFun):
         layers = []
         for ls in layerSizes:
             layers.append(Layer(ls, inputSize, aFun))
@@ -63,7 +63,7 @@ class MLP:
 
         #Output layer
         dEdO = 2 * (out - exp)
-        dOdZ = oL.aFun.evalPrim(oL.z)
+        dOdZ = oL.aFun.derivate(oL.z)
         oL.dEdZ = dEdO * dOdZ
         oL.b -= eta * oL.dEdZ
         oL.w -= eta * np.outer(oL.dEdZ, oL.i)
@@ -73,7 +73,7 @@ class MLP:
         for i in reversed(range(len(layers) - 1)):
             l = layers[i]
             nl = layers[i + 1]
-            dOdZ = l.aFun.evalPrim(l.z)
+            dOdZ = l.aFun.derivate(l.z)
             dEdO = np.matmul(np.transpose(nl.w), nl.dEdZ) 
             l.dEdZ = dOdZ * dEdO
             l.b -= eta * l.dEdZ
@@ -81,8 +81,5 @@ class MLP:
 
         return self.cost
 
-    def getCost(self):
-        return self.cost
-
-    def getOutput(self):
+    def output(self):
         return self.oL.o
