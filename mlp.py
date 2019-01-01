@@ -27,13 +27,20 @@ class MLP:
     layers = []
     cost = 0
 
-    def __init__(self, inputSize, layerSizes, eta, aFun):
-        self.inputSize = inputSize
-        for ls in layerSizes:
-            self.layers.append(Layer(ls, inputSize, aFun))
-            inputSize = ls
-        self.oL = self.layers[len(self.layers) - 1]
+    def __init__(self, name, layers, eta):
+        self.name = name
+        self.layers = layers
         self.eta = eta
+        self.inputSize = layers[0].nCol
+        self.oL = layers[len(layers) - 1]
+
+    @classmethod
+    def fromArguments(cls, name, inputSize, layerSizes, eta, aFun):
+        layers = []
+        for ls in layerSizes:
+            layers.append(Layer(ls, inputSize, aFun))
+            inputSize = ls
+        return cls(name, layers, eta)
     
     def eval(self, inp, exp):
         #No need to make copy of input as the local

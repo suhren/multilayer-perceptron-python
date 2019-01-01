@@ -26,7 +26,7 @@ def digitToArray(digit):
 
 def showImage(image):
     plt.figure()
-    plt.imshow(image, cmap=cm.gray, vmin=0, vmax=255)
+    plt.imshow(image, cmap=plt.get_cmap('gray'), vmin=0, vmax=255)
     plt.show()
 
 def maxIndex(x):
@@ -35,13 +35,13 @@ def maxIndex(x):
 def main():
     """The entry point of the program."""
 
-    network = mlp.MLP(784, (12, 10), 0.01, aFunLibrary.ELLIOT_SIG)
+    network = mlp.MLP.fromArguments("MyMLP", 784, (12, 10), 0.01, aFunLibrary.ELLIOT_SIG)
     
     #print(network.eval(inp, expected))
     #print(network.getCost())
 
-    trainLabels, trainImages = fileUtils.readMNIST("MNIST//train-labels-idx1-ubyte", "MNIST//train-images-idx3-ubyte")
-    testLabels, testImages = fileUtils.readMNIST("MNIST//t10k-labels-idx1-ubyte", "MNIST//t10k-images-idx3-ubyte")
+    trainLabels, trainImages = fileUtils.loadMNIST("mnist//train-labels-idx1-ubyte", "MNIST//train-images-idx3-ubyte")
+    testLabels, testImages = fileUtils.loadMNIST("mnist//t10k-labels-idx1-ubyte", "MNIST//t10k-images-idx3-ubyte")
 
     trainSet = []
     for i in range(len(trainLabels)):
@@ -52,9 +52,14 @@ def main():
     while True:
         command = input("Enter command: ").split()
         if command[0] == "train":
-            train(network, trainSet, int(command[1]))
+            n = int(command[1]) if (len(command)) > 1 else 1
+            train(network, trainSet, n)
         elif command[0] == "input":
             inputEntry(network, trainSet, int(command[1]))
+        elif command[0] == "save":
+            fileUtils.saveMLP(network, "networks/mynetwork.txt")
+        elif command[0] == "load":
+            network = fileUtils.loadMLP("networks/mynetwork.txt")
 
 def inputEntry(network, dataset, i):
     print("Input %s:" % (maxIndex(dataset[i].exp)))
