@@ -29,10 +29,9 @@ class MLP:
 
     def __init__(self, inputSize, layerSizes, eta, aFun):
         self.inputSize = inputSize
-        current = inputSize
         for ls in layerSizes:
-            self.layers.append(Layer(ls, current, aFun))
-            current = ls
+            self.layers.append(Layer(ls, inputSize, aFun))
+            inputSize = ls
         self.oL = self.layers[len(self.layers) - 1]
         self.eta = eta
     
@@ -59,22 +58,24 @@ class MLP:
         dEdO = 2 * (out - exp)
         dOdZ = oL.aFun.evalPrim(oL.z)
         oL.dEdZ = dEdO * dOdZ
-        oL.b = oL.b - eta * oL.dEdZ
-        oL.w = oL.w - eta * np.outer(oL.dEdZ, oL.i)
+        oL.b -= eta * oL.dEdZ
+        oL.w -= eta * np.outer(oL.dEdZ, oL.i)
         # https://en.wikipedia.org/wiki/Outer_product
 
         #Hidden layers
         for i in reversed(range(len(layers) - 1)):
             l = layers[i]
             nl = layers[i + 1]
-
             dOdZ = l.aFun.evalPrim(l.z)
             dEdO = np.matmul(np.transpose(nl.w), nl.dEdZ) 
             l.dEdZ = dOdZ * dEdO
-            l.b = l.b - eta * l.dEdZ
-            l.w = l.w - eta * np.outer(l.dEdZ, l.i)
+            l.b -= eta * l.dEdZ
+            l.w -= eta * np.outer(l.dEdZ, l.i)
 
         return self.cost
 
     def getCost(self):
         return self.cost
+
+    def getOutput(self):
+        return self.oL.o

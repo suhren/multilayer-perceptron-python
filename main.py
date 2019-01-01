@@ -13,11 +13,14 @@ class DataEntry():
         self.inp = inp
         self.exp = exp
 
+#The MLP works better when the pixels are a value between 0.0f and 1.0f as oposed to 0 to 255?
+#Can it be because the expected output is in the range 0.0f to 1.0f?
+#Works best when normalized or input and output is in the same order of magnitude?
 def imageToArray(image):
-    return image.reshape(len(image) * len(image[0]))
+    return image.reshape(len(image) * len(image[0])).astype(np.float64) / 255.0
 
 def digitToArray(digit):
-    res = np.zeros(10)
+    res = np.zeros(10).astype(np.float64)
     res[digit] = 1.0
     return res
 
@@ -26,10 +29,13 @@ def showImage(image):
     plt.imshow(image, cmap=cm.gray, vmin=0, vmax=255)
     plt.show()
 
+def maxIndex(x):
+    return np.argmax(x)
+
 def main():
     """The entry point of the program."""
 
-    network = mlp.MLP(784, (12, 10), 0.01, aFunLibrary.ARCTAN)
+    network = mlp.MLP(784, (12, 10), 0.01, aFunLibrary.ELLIOT_SIG)
     
     #print(network.eval(inp, expected))
     #print(network.getCost())
@@ -46,19 +52,26 @@ def main():
     while True:
         command = input("Enter command: ").split()
         if command[0] == "train":
-            sum = 0.0
-            print("Training...")
-            for i, e in enumerate(trainSet):
-                cost = network.train(e.inp, e.exp)
-                print("%i of %i: Cost: %.8f" % (i, len(trainSet), cost))
-                sum += cost
-            print("Average cost: %.8f" % (sum / len(trainSet)))
+            train(network, trainSet, int(command[1]))
         elif command[0] == "input":
-            i = int(command[1])
-            print("Input %s:" % (trainLabels[i]))
-            print("Output: %s" % (network.eval(trainSet[i].inp, trainSet[i].exp)))
-            # print("Cost: %.8f" % (network.getCost()))
+            inputEntry(network, trainSet, int(command[1]))
 
+def inputEntry(network, dataset, i):
+    print("Input %s:" % (maxIndex(dataset[i].exp)))
+    out = network.eval(dataset[i].inp, dataset[i].exp)
+    print("Guess: %i" % maxIndex(out))
+    print("Output: %s" % out)
+    # print("Cost: %.8f" % (network.getCost()))
+
+def train(network, dataset, n):
+    print("Training %i times..." % (n))
+    for i in range(n):
+        sum = 0.0
+        for e in dataset:
+            sum += network.train(e.inp, e.exp)
+            #print("%i of %i: Cost: %.8f" % (i, len(trainSet), cost))
+        print("Set %i of %i: ave. cost: %.16f" % (i + 1, n, sum / len(dataset)))
+    print("Done training")
     
 if __name__ == '__main__':
     main()
